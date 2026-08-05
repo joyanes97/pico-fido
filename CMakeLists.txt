@@ -17,6 +17,19 @@
 
 cmake_minimum_required(VERSION 3.13)
 
+option(PICO_FIDO_EMBEDDED
+    "Build embeddable CTAP core without app_main or TinyUSB ownership" OFF)
+
+if(PICO_FIDO_EMBEDDED)
+    if(NOT ESP_PLATFORM)
+        message(FATAL_ERROR "PICO_FIDO_EMBEDDED currently requires ESP-IDF")
+    endif()
+    set(ENABLE_OATH_APP OFF CACHE BOOL "OATH disabled in embedded mode" FORCE)
+    set(ENABLE_OTP_APP OFF CACHE BOOL "OTP disabled in embedded mode" FORCE)
+    set(ENABLE_PQC OFF CACHE BOOL "PQC disabled in embedded mode" FORCE)
+    add_compile_definitions(PICO_FIDO_EMBEDDED=1)
+endif()
+
 set(USB_VID 0x2E8A)
 set(USB_PID 0x10FE)
 
@@ -39,7 +52,9 @@ if(ESP_PLATFORM)
             pico-keys-sdk/config/esp32/components/mlkem1024
         )
     endif()
-    include($ENV{IDF_PATH}/tools/cmake/project.cmake)
+    if(NOT PICO_FIDO_EMBEDDED)
+        include($ENV{IDF_PATH}/tools/cmake/project.cmake)
+    endif()
 else()
     if(NOT ENABLE_EMULATION)
         set(PICO_USE_FASTEST_SUPPORTED_CLOCK 1)
@@ -94,28 +109,12 @@ if(NOT ESP_PLATFORM)
     set(SOURCES ${PICO_KEYS_SOURCES})
 endif()
 
-list(APPEND SOURCES
-    ${CMAKE_CURRENT_LIST_DIR}/src/fido/fido.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/fido/files.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/fido/cmd_register.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/fido/cmd_authenticate.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/fido/cmd_version.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/fido/cbor.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/fido/cbor_reset.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/fido/cbor_get_info.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/fido/cbor_make_credential.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/fido/known_apps.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/fido/cbor_client_pin.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/fido/credential.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/fido/cbor_get_assertion.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/fido/cbor_selection.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/fido/cbor_cred_mgmt.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/fido/cbor_config.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/fido/cbor_vendor.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/fido/cbor_large_blobs.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/fido/management.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/fido/defs.c
-)
+include(${CMAKE_CURRENT_LIST_DIR}/src/fido/sources.cmake)
+list(APPEND SOURCES ${PICO_FIDO_CORE_SOURCES})
+
+if(PICO_FIDO_EMBEDDED)
+    list(APPEND SOURCES ${CMAKE_CURRENT_LIST_DIR}/src/fido/embedded.c)
+endif()
 
 if(ENABLE_OATH_APP)
     list(APPEND SOURCES
@@ -130,12 +129,13 @@ if(ENABLE_OTP_APP)
 endif()
 
 SET_VERSION(ver_major ver_minor "${CMAKE_CURRENT_LIST_DIR}/src/fido/version.h")
-if(ESP_PLATFORM)
+if(ESP_PLATFORM AND NOT PICO_FIDO_EMBEDDED)
     project(pico_fido)
 endif()
 
 set(INCLUDES ${INCLUDES}
     ${CMAKE_CURRENT_LIST_DIR}/src/fido
+    ${CMAKE_CURRENT_LIST_DIR}/include
 )
 
 if(NOT ESP_PLATFORM)

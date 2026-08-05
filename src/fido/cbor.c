@@ -45,6 +45,10 @@ int cbor_parse(uint8_t cmd, const uint8_t *data, size_t len) {
     if (len > 0) {
         DEBUG_DATA(data + 1, len - 1);
     }
+#ifdef PICO_FIDO_EMBEDDED
+    /* Storage adapter is intentionally pending. Never enter credential paths. */
+    return CTAP2_ERR_OPERATION_DENIED;
+#endif
     if (cap_supported(CAP_FIDO2)) {
         if (cmd == CTAPHID_CBOR) {
             if (data[0] != CTAP_GET_NEXT_ASSERTION) {

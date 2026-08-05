@@ -1,0 +1,22 @@
+set(PICO_FIDO_CORE_SOURCES
+    ${CMAKE_CURRENT_LIST_DIR}/fido.c
+    ${CMAKE_CURRENT_LIST_DIR}/files.c
+    ${CMAKE_CURRENT_LIST_DIR}/cmd_register.c
+    ${CMAKE_CURRENT_LIST_DIR}/cmd_authenticate.c
+    ${CMAKE_CURRENT_LIST_DIR}/cmd_version.c
+    ${CMAKE_CURRENT_LIST_DIR}/cbor.c
+    ${CMAKE_CURRENT_LIST_DIR}/cbor_reset.c
+    ${CMAKE_CURRENT_LIST_DIR}/cbor_get_info.c
+    ${CMAKE_CURRENT_LIST_DIR}/cbor_make_credential.c
+    ${CMAKE_CURRENT_LIST_DIR}/known_apps.c
+    ${CMAKE_CURRENT_LIST_DIR}/cbor_client_pin.c
+    ${CMAKE_CURRENT_LIST_DIR}/credential.c
+    ${CMAKE_CURRENT_LIST_DIR}/cbor_get_assertion.c
+    ${CMAKE_CURRENT_LIST_DIR}/cbor_selection.c
+    ${CMAKE_CURRENT_LIST_DIR}/cbor_cred_mgmt.c
+    ${CMAKE_CURRENT_LIST_DIR}/cbor_config.c
+    ${CMAKE_CURRENT_LIST_DIR}/cbor_vendor.c
+    ${CMAKE_CURRENT_LIST_DIR}/cbor_large_blobs.c
+    ${CMAKE_CURRENT_LIST_DIR}/management.c
+    ${CMAKE_CURRENT_LIST_DIR}/defs.c
+)

@@ -496,14 +496,20 @@ void scan_all(void) {
 
 extern bool needs_power_cycle;
 void init_fido(void) {
+#ifndef PICO_FIDO_EMBEDDED
     scan_all();
 #ifdef ENABLE_OTP_APP
     init_otp();
+#endif
 #endif
     needs_power_cycle = false;
 }
 
 bool wait_button_pressed(void) {
+#ifdef PICO_FIDO_EMBEDDED
+    extern bool pico_fido_embedded_check_presence(uint32_t timeout_ms);
+    return !pico_fido_embedded_check_presence(TRANSPORT_TIME_LIMIT);
+#else
     uint32_t val = EV_PRESS_BUTTON;
 #if defined(PICO_PLATFORM) || defined(ESP_PLATFORM)
     queue_try_add(&card_to_usb_q, &val);
@@ -512,6 +518,7 @@ bool wait_button_pressed(void) {
     } while (val != EV_BUTTON_PRESSED && val != EV_BUTTON_TIMEOUT);
 #endif
     return val == EV_BUTTON_TIMEOUT;
+#endif
 }
 
 uint32_t user_present_time_limit = 0;
