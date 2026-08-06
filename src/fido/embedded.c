@@ -33,6 +33,11 @@ void led_set_mode(uint32_t mode) {
     (void)mode;
 }
 
+void *apdu_thread(void *arg) {
+    (void)arg;
+    return NULL;
+}
+
 app_t apps[16];
 uint8_t num_apps;
 app_t *current_app;
