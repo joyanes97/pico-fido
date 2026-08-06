@@ -61,3 +61,15 @@ def test_embedded_hid_rejects_oversized_ping_and_resets_session_state():
     assert "resp->capFlags = CAPFLAG_WINK;" in hid
     assert "pico_fido_hid_reset();" in runtime
     assert "if (!pico_fido_hid_ready())" in runtime
+
+
+def test_embedded_sdk_source_list_excludes_irreversible_provisioning():
+    cmake = (ROOT / "pico-keys-sdk" / "config" / "esp32" / "components" /
+             "pico-keys-sdk" / "CMakeLists.txt").read_text()
+
+    assert "set(PICO_KEYS_EMBEDDED_SOURCES" in cmake
+    embedded_sources = cmake.split("set(PICO_KEYS_EMBEDDED_SOURCES", 1)[1].split(")", 1)[0]
+    for forbidden in ("otp.c", "rescue.c", "main.c", "eac.c", "led.c",
+                      "usb_descriptors.c"):
+        assert forbidden not in embedded_sources
+    assert "if(PICO_FIDO_EMBEDDED)\n    set(PICO_KEYS_SOURCES ${PICO_KEYS_EMBEDDED_SOURCES})" in cmake

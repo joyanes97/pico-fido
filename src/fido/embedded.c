@@ -18,6 +18,21 @@ static pico_fido_embedded_config_t embedded_config;
 static bool embedded_initialized;
 static bool embedded_active;
 
+// Embedded builds intentionally exclude OTP/provisioning and LED drivers.
+const uint8_t *otp_key_1 = NULL;
+
+uint16_t set_res_sw(uint8_t sw1, uint8_t sw2) {
+    apdu.sw = make_uint16_t_be(sw1, sw2);
+    if (sw1 != 0x90) {
+        res_APDU_size = 0;
+    }
+    return apdu.sw;
+}
+
+void led_set_mode(uint32_t mode) {
+    (void)mode;
+}
+
 app_t apps[16];
 uint8_t num_apps;
 app_t *current_app;
